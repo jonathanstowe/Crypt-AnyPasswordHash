@@ -1,0 +1,54 @@
+{
+  "type": "layout",
+  "children": [
+    {
+      "children": [
+        {
+          "type": "file",
+          "name": "001-meta.t"
+        },
+        {
+          "name": "030-hash.t",
+          "type": "file"
+        },
+        {
+          "type": "file",
+          "name": "010-use.t"
+        }
+      ],
+      "name": "t",
+      "type": "directory",
+      "purpose": null
+    },
+    {
+      "type": "file",
+      "name": "README.md"
+    },
+    {
+      "purpose": null,
+      "children": [
+        {
+          "type": "directory",
+          "name": "Crypt",
+          "children": [
+            {
+              "type": "file",
+              "name": "AnyPasswordHash.pm"
+            }
+          ],
+          "purpose": null
+        }
+      ],
+      "type": "directory",
+      "name": "lib"
+    },
+    {
+      "type": "file",
+      "name": "META6.json"
+    },
+    {
+      "name": "LICENCE",
+      "type": "file"
+    }
+  ]
+}

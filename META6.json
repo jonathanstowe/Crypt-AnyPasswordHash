@@ -1,0 +1,32 @@
+{
+  "tags": [
+	"password", "hash", "crypt"
+  ],
+  "version": "0.0.1",
+  "auth": "github:jonathanstowe",
+  "meta-version": "0",
+  "build-depends": [
+  ],
+  "authors": [
+    "Jonathan Stowe <jns+gh@gellyfish.co.uk>"
+  ],
+  "support": {
+    "source": "https://github.com/jonathanstowe/Crypt-AnyPasswordHash.git",
+    "email": "jns+gh@gellyfish.co.uk"
+  },
+  "license": "Artistic-2.0",
+  "depends": [
+	"Crypt::Libcrypt"
+  ],
+  "name": "Crypt::AnyPasswordHash",
+  "provides": {
+	"Crypt::AnyPasswordHash" : "lib/Crypt/AnyPasswordHash.pm"
+  },
+  "resources": [
+  ],
+  "perl": "6.d",
+  "test-depends": [
+  ],
+  "description": "Hash and verify a password using the best available means",
+  "source-url": "https://github.com/jonathanstowe/Crypt-AnyPasswordHash.git"
+}
