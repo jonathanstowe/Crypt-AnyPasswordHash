@@ -2,7 +2,7 @@
   "tags": [
 	"password", "hash", "crypt"
   ],
-  "version": "0.0.1",
+  "version": "0.0.2",
   "auth": "github:jonathanstowe",
   "meta-version": "0",
   "build-depends": [

@@ -51,7 +51,9 @@ module Crypt::AnyPasswordHash {
     our &check-password is export;
 
     if (try require ::('Crypt::Argon2') <&argon2-hash &argon2-verify>) !=== Nil {
-        &hash-password = &argon2-hash;
+        &hash-password = sub ( Str $password --> Str ) {
+            argon2-hash($password).subst(/\0+$/,'');
+        };
         &check-password = &argon2-verify
     }
     elsif (try require ::('Crypt::SodiumScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {

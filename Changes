@@ -1,2 +1,4 @@
+v0.0.2		Fri 20 Dec 12:52:45 GMT 2019
+	* Remove trailing null bytes from argon2
 v0.0.1		Thu 19 Dec 17:50:43 GMT 2019
 	* Initial release
