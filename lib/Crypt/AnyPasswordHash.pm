@@ -29,6 +29,8 @@ which encrypt password and check a provided password against an encryped hash.
 
 The implementation for the subroutines is provided by the first of:
 
+=item L<Crypt::SodiumPasswordHash|https://github.com/jonathanstowe/Crypt-SodiumPasswordHash>
+
 =item L<Crypt::Argon2|https://github.com/skinkade/p6-crypt-argon2>
 
 =item L<Crypt::SodiumScrypt|https://github.com/jonathanstowe/Crypt-SodiumScrypt>
@@ -47,10 +49,17 @@ characters long, if this is the case then you should install one of the other pr
 
 
 module Crypt::AnyPasswordHash {
-    our &hash-password  is export;
-    our &check-password is export;
+}
 
-    if (try require ::('Crypt::Argon2') <&argon2-hash &argon2-verify>) !=== Nil {
+sub EXPORT() {
+    my &hash-password;
+    my &check-password;
+
+    if (try require ::('Crypt::SodiumPasswordHash') <&sodium-hash &sodium-verify>) !=== Nil {
+        &hash-password = &sodium-hash;
+        &check-password = &sodium-verify
+    }
+    elsif (try require ::('Crypt::Argon2') <&argon2-hash &argon2-verify>) !=== Nil {
         &hash-password = sub ( Str $password --> Str ) {
             argon2-hash($password).subst(/\0+$/,'');
         };
@@ -92,9 +101,14 @@ module Crypt::AnyPasswordHash {
     }
     else {
        die q:to/EOMESS/;
-        No hashing module installed, please install one of 'Crypt::Argon2', 'Crypt::SodiumScrypt' or 'Crypt::Libcrypt'
+        No hashing module installed, please install one of 'Crypt::SodiumPasswordHash', 'Crypt::Argon2', 'Crypt::SodiumScrypt' or 'Crypt::Libcrypt'
        EOMESS
     }
+
+    %(
+        '&hash-password'    =>  &hash-password,
+        '&check-password'   =>  &check-password
+    );
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6

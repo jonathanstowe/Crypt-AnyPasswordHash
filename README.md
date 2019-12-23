@@ -20,6 +20,8 @@ This module exports two subroutines `hash-password` and `check-password` which e
 
 The implementation for the subroutines is provided by the first of:
 
+  * [Crypt::SodiumPasswordHash](https://github.com/jonathanstowe/Crypt-SodiumPasswordHash)
+
   * [Crypt::Argon2](https://github.com/skinkade/p6-crypt-argon2)
 
   * [Crypt::SodiumScrypt](https://github.com/jonathanstowe/Crypt-SodiumScrypt)
@@ -54,5 +56,3 @@ This is free software.
 Please see the [LICENCE](LICENCE) file in the distribution
 
 © Jonathan Stowe 2019
-
-
