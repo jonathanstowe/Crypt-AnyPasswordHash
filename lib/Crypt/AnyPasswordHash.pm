@@ -25,9 +25,9 @@ if check-password($hash, $password ) {
 =head1 DESCRIPTION
 
 This module exports two subroutines C<hash-password> and C<check-password>
-which encrypt password and check a provided password against an encryped hash.
+which encrypt password and check a provided password against an encrypted hash.
 
-The implementation for the subroutines is provided by the first of:
+The implementation for the C<hash-password> is provided by the first of:
 
 =item L<Crypt::SodiumPasswordHash|https://github.com/jonathanstowe/Crypt-SodiumPasswordHash>
 
@@ -45,6 +45,12 @@ it may fall back to DES which is not considered secure enough for production use
 can tell you are getting DES when the hash returned by C<hash-password> is only 13
 characters long, if this is the case then you should install one of the other providers.
 
+The C<check-password> will attempt to validate against all the available mechanisms
+until one validates the password or the mechanisms are exhausted.  This is so that, if
+you are validating against stored hashes, if a new supported module is installed or 
+this module is upgraded then you will still be able to verify against hashes made by a
+previous mechanism.
+
 =end pod
 
 
@@ -53,57 +59,78 @@ module Crypt::AnyPasswordHash {
 
 sub EXPORT() {
     my &hash-password;
-    my &check-password;
+    my @checkers;
 
     if (try require ::('Crypt::SodiumPasswordHash') <&sodium-hash &sodium-verify>) !=== Nil {
-        &hash-password = &sodium-hash;
-        &check-password = &sodium-verify
+        if !&hash-password.defined {
+            &hash-password = &sodium-hash;
+        }
+        @checkers.append: &sodium-verify;
     }
-    elsif (try require ::('Crypt::Argon2') <&argon2-hash &argon2-verify>) !=== Nil {
-        &hash-password = sub ( Str $password --> Str ) {
-            argon2-hash($password).subst(/\0+$/,'');
-        };
-        &check-password = &argon2-verify
+    if (try require ::('Crypt::Argon2') <&argon2-hash &argon2-verify>) !=== Nil {
+        if !&hash-password.defined {
+            &hash-password = sub ( Str $password --> Str ) {
+                argon2-hash($password).subst(/\0+$/,'');
+            };
+        }
+        @checkers.append: &argon2-verify;
     }
-    elsif (try require ::('Crypt::SodiumScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
-        &hash-password = &scrypt-hash;
-        &check-password = &scrypt-verify
+    if (try require ::('Crypt::SodiumScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
+        if !&hash-password.defined {
+            &hash-password = &scrypt-hash;
+        }
+        @checkers.append: &scrypt-verify
     }
-    elsif (try require ::('Crypt::Bcrypt') <&bcrypt-hash &bcrypt-match>) !=== Nil {
-        &hash-password = &bcrypt-hash;
-        &check-password = sub ( Str $hash, Str $password --> Bool ) {
+    if (try require ::('Crypt::Bcrypt') <&bcrypt-hash &bcrypt-match>) !=== Nil {
+        if !&hash-password.defined {
+            &hash-password = &bcrypt-hash;
+        }
+        @checkers.append: sub ( Str $hash, Str $password --> Bool ) {
             bcrypt-match($password, $hash);
         };
     }
-    elsif (try require ::('Crypt::Libcrypt') <&crypt &crypt-generate-salt>) !=== Nil {
-        sub generate-salt(--> Str) {
-            if crypt-generate-salt() -> $salt {
-                $salt;
-            }
-            else {
-                my @chars = (|("a" .. "z"), |("A" .. "Z"), |(0 .. 9));
-                if $*DISTRO.name eq 'macosx' {
-                    @chars.pick(2).join;
+    if (try require ::('Crypt::Libcrypt') <&crypt &crypt-generate-salt>) !=== Nil {
+        if !&hash-password.defined {
+            sub generate-salt(--> Str) {
+                if crypt-generate-salt() -> $salt {
+                    $salt;
                 }
                 else {
-                    '$6$' ~ @chars.pick(16).join ~ '$';
+                    my @chars = (|("a" .. "z"), |("A" .. "Z"), |(0 .. 9));
+                    if $*DISTRO.name eq 'macosx' {
+                        @chars.pick(2).join;
+                    }
+                    else {
+                        '$6$' ~ @chars.pick(16).join ~ '$';
+                    }
                 }
             }
+
+            &hash-password = sub ( Str $password --> Str ) {
+                crypt($password, generate-salt());
+            };
         }
 
-        &hash-password = sub ( Str $password --> Str ) {
-            crypt($password, generate-salt());
-        };
-
-        &check-password = sub ( Str $hash, Str $password --> Bool ) {
-            crypt($password, $hash) eq $hash
+        @checkers.append: sub ( Str $hash, Str $password --> Bool ) {
+            (crypt($password, $hash) // '' )  eq $hash
         };
     }
-    else {
+    if !&hash-password.defined {
        die q:to/EOMESS/;
         No hashing module installed, please install one of 'Crypt::SodiumPasswordHash', 'Crypt::Argon2', 'Crypt::SodiumScrypt' or 'Crypt::Libcrypt'
        EOMESS
     }
+
+    my &check-password = sub ( Str $hash, Str $password --> Bool ) {
+        my $rc = False;
+        for @checkers -> &check {
+            if check($hash, $password ) {
+                $rc = True;
+                last;
+            }
+        }
+        $rc;
+    };
 
     %(
         '&hash-password'    =>  &hash-password,
