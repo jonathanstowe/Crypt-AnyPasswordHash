@@ -16,7 +16,7 @@
   },
   "license": "Artistic-2.0",
   "depends": [
-	"Crypt::Libcrypt"
+	"Crypt::Libcrypt:ver<0.1.0+>"
   ],
   "name": "Crypt::AnyPasswordHash",
   "provides": {
