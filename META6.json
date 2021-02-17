@@ -3,7 +3,7 @@
 	"password", "hash", "crypt"
   ],
   "name": "Crypt::AnyPasswordHash",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "auth": "github:jonathanstowe",
   "api" : "1.0",
   "meta-version": "1",
@@ -27,6 +27,7 @@
   "resources": [
   ],
   "perl": "6.*",
+  "raku": "6.*",
   "test-depends": [
   ],
   "description": "Hash and verify a password using the best available means",

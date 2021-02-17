@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    container:
+      image: rakudo-star:latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: update apt
+      run:  apt-get update
+
+    - name: Raku version
+      run: raku -v
+
+    - name: Install dependencies
+      run: zef install --deps-only --/test --test-depends .
+
+    - name: Run tests with default Crypt::Libcrypt
+      run: zef test -v --debug .
+
+    - name: Install libsodium and build tools
+      run:  apt-get install -y libsodium23 build-essential
+
+    - name: Install Crypt::SodiumScrypt
+      run:  zef install -v Crypt::SodiumScrypt
+
+    - name: Run tests with Crypt::SodiumScrypt
+      run: zef test -v --debug .
+
+    - name: Install Crypt::Argon2
+      run:  zef install -v Crypt::Argon2
+
+    - name: Run tests with Crypt::Argon2
+      run: zef test -v --debug .
+
+    - name: Install Crypt::SodiumPasswordHash
+      run:  zef install -v Crypt::SodiumPasswordHash
+
+    - name: Run tests with Crypt::SodiumPasswordHash
+      run: zef test -v --debug .

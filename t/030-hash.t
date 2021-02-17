@@ -1,4 +1,4 @@
-#!/usr/bin/env perl6
+#!/usr/bin/env raku
 
 use v6;
 
@@ -23,4 +23,4 @@ lives-ok { ok check-password($des-hash, $password), "verify ok" }, 'check-passwo
 lives-ok { nok check-password($des-hash, $password.flip), "verify nok with wrong password" }, 'check-password with DES hashed password';
 
 done-testing;
-# vim: expandtab shiftwidth=4 ft=perl6
+# vim: expandtab shiftwidth=4 ft=raku

@@ -47,7 +47,7 @@ characters long, if this is the case then you should install one of the other pr
 
 The C<check-password> will attempt to validate against all the available mechanisms
 until one validates the password or the mechanisms are exhausted.  This is so that, if
-you are validating against stored hashes, if a new supported module is installed or 
+you are validating against stored hashes, if a new supported module is installed or
 this module is upgraded then you will still be able to verify against hashes made by a
 previous mechanism.
 
@@ -138,4 +138,4 @@ sub EXPORT() {
     );
 }
 
-# vim: expandtab shiftwidth=4 ft=perl6
+# vim: expandtab shiftwidth=4 ft=raku

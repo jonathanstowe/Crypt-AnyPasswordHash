@@ -2,6 +2,8 @@
 
 Use best installed password encryption available
 
+![Build Status](https://github.com/jonathanstowe/Crypt-AnyPasswordHash/workflows/CI/badge.svg)
+
 ## Synopsis
 
     use Crypt::AnyPasswordHash;
@@ -57,4 +59,4 @@ This is free software.
 
 Please see the [LICENCE](LICENCE) file in the distribution
 
-© Jonathan Stowe 2019
+© Jonathan Stowe 2019 - 2021
