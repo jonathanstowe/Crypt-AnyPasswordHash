@@ -33,6 +33,8 @@ The implementation for the C<hash-password> is provided by the first of:
 
 =item L<Crypt::Argon2|https://github.com/skinkade/p6-crypt-argon2>
 
+=item L<Crypt::LibScrypt|https://github.com/jonathanstowe/Crypt-LibScrypt>
+
 =item L<Crypt::SodiumScrypt|https://github.com/jonathanstowe/Crypt-SodiumScrypt>
 
 =item L<Crypt::Libcrypt|https://github.com/jonathanstowe/Crypt-Libcrypt>
@@ -75,11 +77,19 @@ sub EXPORT() {
         }
         @checkers.append: &argon2-verify;
     }
+    { # need this block otherwise we get a redefined on the next one
+        if (try require ::('Crypt::LibScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
+            if !&hash-password.defined {
+                &hash-password = &scrypt-hash;
+            }
+            @checkers.append: &scrypt-verify;
+        }
+    }
     if (try require ::('Crypt::SodiumScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
         if !&hash-password.defined {
             &hash-password = &scrypt-hash;
         }
-        @checkers.append: &scrypt-verify
+        @checkers.append: &scrypt-verify;
     }
     if (try require ::('Crypt::Bcrypt') <&bcrypt-hash &bcrypt-match>) !=== Nil {
         if !&hash-password.defined {

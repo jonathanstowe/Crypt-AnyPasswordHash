@@ -3,7 +3,7 @@
 	"password", "hash", "crypt"
   ],
   "name": "Crypt::AnyPasswordHash",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "auth": "github:jonathanstowe",
   "api" : "1.0",
   "meta-version": "1",

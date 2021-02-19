@@ -12,7 +12,6 @@ my @chars = (|("a" .. "z"), |("A" .. "Z"), |(0 .. 9));
 my $password = @chars.pick(20).join;
 my $hash;
 lives-ok { $hash = hash-password($password) }, 'hash-password';
-diag "got hash : '$hash'";
 lives-ok { ok check-password($hash, $password), "verify ok" }, 'check-password';
 lives-ok { nok check-password($hash, $password.flip), "verify nok with wrong password" }, 'check-password';
 

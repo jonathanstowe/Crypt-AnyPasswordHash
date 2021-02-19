@@ -28,13 +28,21 @@ jobs:
     - name: Run tests with default Crypt::Libcrypt
       run: zef test -v --debug .
 
-    - name: Install libsodium and build tools
-      run:  apt-get install -y libsodium23 build-essential
+    - name: Install libsodium, libscrypt and build tools
+      run:  apt-get install -y libsodium23 build-essential libscrypt0
+
+    # These are ordered in such a way as to test with each provider
 
     - name: Install Crypt::SodiumScrypt
       run:  zef install -v Crypt::SodiumScrypt
 
     - name: Run tests with Crypt::SodiumScrypt
+      run: zef test -v --debug .
+
+    - name: Install Crypt::LibScrypt
+      run:  zef install -v Crypt::LibScrypt
+
+    - name: Run tests with Crypt::LibScrypt
       run: zef test -v --debug .
 
     - name: Install Crypt::Argon2

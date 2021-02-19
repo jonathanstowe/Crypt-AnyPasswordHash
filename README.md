@@ -26,6 +26,8 @@ The implementation for the `hash-password` is provided by the first of:
 
   * [Crypt::Argon2](https://github.com/skinkade/p6-crypt-argon2)
 
+  * [Crypt::LibScrypt](https://github.com/jonathanstowe/Crypt-LibScrypt) 
+
   * [Crypt::SodiumScrypt](https://github.com/jonathanstowe/Crypt-SodiumScrypt)
 
   * [Crypt::Libcrypt](https://github.com/jonathanstowe/Crypt-Libcrypt)
