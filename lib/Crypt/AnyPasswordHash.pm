@@ -63,67 +63,122 @@ sub EXPORT() {
     my &hash-password;
     my @checkers;
 
-    if (try require ::('Crypt::SodiumPasswordHash') <&sodium-hash &sodium-verify>) !=== Nil {
-        if !&hash-password.defined {
-            &hash-password = &sodium-hash;
-        }
-        @checkers.append: &sodium-verify;
+    my $DEBUG = ?%*ENV<CAPH_DEBUG> // False;
+
+    my sub debug-load(Str $message) {
+        note $message if $DEBUG;
+
     }
-    if (try require ::('Crypt::Argon2') <&argon2-hash &argon2-verify>) !=== Nil {
-        if !&hash-password.defined {
-            &hash-password = sub ( Str $password --> Str ) {
-                argon2-hash($password).subst(/\0+$/,'');
-            };
+
+    {
+        CATCH {
+            default {
+                debug-load("Couldn't load 'Crypt::SodiumPasswordHash'");
+            }
         }
-        @checkers.append: &argon2-verify;
-    }
-    { # need this block otherwise we get a redefined on the next one
-        if (try require ::('Crypt::LibScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
+        if (require ::('Crypt::SodiumPasswordHash') <&sodium-hash &sodium-verify>) !=== Nil {
             if !&hash-password.defined {
+                debug-load("Selected 'Crypt::SodiumPasswordHash'");
+                &hash-password = &sodium-hash;
+            }
+            @checkers.append: &sodium-verify;
+        }
+    }
+    {
+        CATCH {
+            default {
+                debug-load("Couldn't load 'Crypt::Argon2'");
+            }
+        }
+        if (require ::('Crypt::Argon2') <&argon2-hash &argon2-verify>) !=== Nil {
+            if !&hash-password.defined {
+                debug-load("Selected load 'Crypt::Argon2'");
+                &hash-password = sub ( Str $password --> Str ) {
+                    argon2-hash($password).subst(/\0+$/,'');
+                };
+            }
+            @checkers.append: &argon2-verify;
+        }
+    }
+    {
+        CATCH {
+            default {
+                debug-load("Couldn't load 'Crypt::LibScrypt'");
+            }
+        }
+        if ( require ::('Crypt::LibScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
+            if !&hash-password.defined {
+                debug-load("Selected load 'Crypt::LibScrypt'");
                 &hash-password = &scrypt-hash;
             }
             @checkers.append: &scrypt-verify;
         }
     }
-    if (try require ::('Crypt::SodiumScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
-        if !&hash-password.defined {
-            &hash-password = &scrypt-hash;
-        }
-        @checkers.append: &scrypt-verify;
-    }
-    if (try require ::('Crypt::Bcrypt') <&bcrypt-hash &bcrypt-match>) !=== Nil {
-        if !&hash-password.defined {
-            &hash-password = &bcrypt-hash;
-        }
-        @checkers.append: sub ( Str $hash, Str $password --> Bool ) {
-            bcrypt-match($password, $hash);
-        };
-    }
-    if (try require ::('Crypt::Libcrypt') <&crypt &crypt-generate-salt>) !=== Nil {
-        if !&hash-password.defined {
-            sub generate-salt(--> Str) {
-                if crypt-generate-salt() -> $salt {
-                    $salt;
-                }
-                else {
-                    my @chars = (|("a" .. "z"), |("A" .. "Z"), |(0 .. 9));
-                    if $*DISTRO.name eq 'macosx' {
-                        @chars.pick(2).join;
-                    }
-                    else {
-                        '$6$' ~ @chars.pick(16).join ~ '$';
-                    }
-                }
+    {
+        CATCH {
+            default {
+                debug-load("Couldn't load 'Crypt::SodiumScrypt'");
             }
-
-            &hash-password = sub ( Str $password --> Str ) {
-                crypt($password, generate-salt());
+        }
+        if ( require ::('Crypt::SodiumScrypt') <&scrypt-hash &scrypt-verify>) !=== Nil {
+            if !&hash-password.defined {
+                debug-load("Selected load 'Crypt::SodiumScrypt'");
+                &hash-password = &scrypt-hash;
+            }
+            @checkers.append: &scrypt-verify;
+        }
+    }
+    {
+        CATCH {
+            default {
+                debug-load("Couldn't load 'Crypt::Bcrypt'");
+            }
+        }
+        if ( require ::('Crypt::Bcrypt') <&bcrypt-hash &bcrypt-match>) !=== Nil {
+            if !&hash-password.defined {
+                debug-load("Selected load 'Crypt::Bcrypt'");
+                &hash-password = &bcrypt-hash;
+            }
+            @checkers.append: sub ( Str $hash, Str $password --> Bool ) {
+                bcrypt-match($password, $hash);
             };
         }
+    }
+    {
+        CATCH {
+            default {
+                debug-load("Couldn't load 'Crypt::LibCrypt'");
+            }
+        }
+        # Without the 'try' here it ends up by attempting to serialize a VMException under
+        # some circumstances that appears to be related to when consumer is compiled
+        if ( try require ::('Crypt::Libcrypt') <&crypt &crypt-generate-salt>) !=== Nil {
+            if !&hash-password.defined {
+                debug-load("Selected load 'Crypt::LibCrypt'");
+                sub generate-salt(--> Str) {
+                    if crypt-generate-salt() -> $salt {
+                        $salt;
+                    }
+                    else {
+                        my @chars = (|("a" .. "z"), |("A" .. "Z"), |(0 .. 9));
+                        if $*DISTRO.name eq 'macosx' {
+                            @chars.pick(2).join;
+                        }
+                        else {
+                            '$6$' ~ @chars.pick(16).join ~ '$';
+                        }
+                    }
+                }
 
-        @checkers.append: sub ( Str $hash, Str $password --> Bool ) {
-            (crypt($password, $hash) // '' )  eq $hash
-        };
+                &hash-password = sub ( Str $password --> Str ) {
+                    crypt($password, generate-salt());
+                };
+            }
+
+            @checkers.append: sub ( Str $hash, Str $password --> Bool ) {
+                (crypt($password, $hash) // '' )  eq $hash
+            };
+        }
     }
     if !&hash-password.defined {
        die q:to/EOMESS/;
